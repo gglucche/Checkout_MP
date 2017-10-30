@@ -1,66 +1,45 @@
 <meta charset="utf-8">
 <?php
+ini_set('display_errors',1);
+ini_set('display_startup_errors',1);
+error_reporting(E_ALL);
 
-require_once ('mercadopago.php');
+require_once ('//DADO_PESSOAL');
 	
-require_once ('../conexao9.php');
+require_once ('//DADO_PESSOAL');
 
 session_start();
 
-$select_assoc_info = //Select com a tabela que guarda dados do  PAGAMENTO
+$select_assoc_info = mysql_query("SELECT * FROM `starkclub_pf` INNER JOIN starkclub_associado ON starkclub_associado.id = starkclub_pf.vinc_id WHERE starkclub_pf.vinc_id =".$_SESSION['pfAssoc']);
 
-if(mysql_num_rows($select_assoc_info)>0){// EXITE NA TABELA STARKCLUB_PF
+$dado_user = mysql_fetch_array($select_assoc_info);
 
-$mp = new MP('DADO__PESSOAL'); 
+$nome_user = explode(" ",$dado_user['nome']);
 
-$dado_user = mysql_fetch_array($select_assoc_info);	
-
-$nome_user = explode(" ",$dado_user['nome']); 
 	
+if(mysql_num_rows($select_assoc_info)>0){// exite na tabela starkclub_pf
+
+$mp = new MP('//DADO_PESSOAL'); 
+
 $payment_data = array(
-    "transaction_amount"   => doubleval($dado_user['valor']), //VALOR DA COMPRA
-    "token"                => $_POST['token'], //TOKEN GERADO PELO JAVASCRIPT INDEX.PHP
-    "description"          => "Starkclub PF: ".$dado_user['plano'], //DESCRIÇÃO DA COMPRA
-    "installments"         => 1, //PARCELAS
-    "payment_method_id"    => $_POST['bandeira'], //FORMA DE PAGAMENTO (VISA, MASTERCARD, AMEX)
-    "statement_descriptor" => $dado_user['nome'], //NOME NA FATURA DO CARTÃO
-	"payment_method_id"	   => $_REQUEST['paymentMethodId'], // MEIO DE PAGAMENTO ESCOLHIDO.
-    "statement_descriptor" => "STARKCLUB", // ESTE CAMPO IRÁ NA APARECER NA FATURA DO CARTÃO DO CLIENTE, LIMITADO A 10 CARACTERES.
-    "notification_url"=> "http://www.starkclub.com.br/club/notification", //ENDEREÇO EM SEU SISTEMA POR ONDE DESEJA RECEBER AS NOTIFICAÇÕES DE STATUS: https://www.mercadopago.com.br/developers/pt/solutions/payments/custom-checkout/webhooks/
-    /*"sponsor_id"=>12345678*/ //SOMENTE PARA DEVS/PLATAFORMAS QUE FOREM ADMINISTRAR MÚLTIPLAS LOJAS, INFORMANDO NESTE CAMPO O ID DE SUA CONTA MERCADO PAGO, TORNARÁ FACILMENTE RASTREAVEL AS VENDAS DE TODOS OS SEUS CLIENTES LOJISTAS.
-    "payer"=> array(
-        "email" => $dado_user['email'] //E-MAIL DO COMPRADOR
-    ),
-    "additional_info"=>  array(  // DADOS ESSENCIAIS PARA ANÁLISE ANTI-FRAUDE
-        "items"=> array(array( //PARA CADA ITEM QUE ESTÁ SENDO VENDIDO É CRIADO UM ARRAY DENTRO DESTE ARRAY PAI COM AS INFORMAÇÕES DESCRITAS ABAIXO
-            
-                "id"=> $dado_user['plano'], //CÓDIGO IDENTIFICADOR DO SEU PRODUTO
-                "title"=> "Aqui coloca os itens do carrinho", //TÍTULO DO ITEM
-                "description"=> "StarkClub PF Cartão Benefício", //DESCRIÇÃO DO ITEM
-                "category_id"=> "services", //CATEGORIA A QUAL O ITEM PERTENCE, LISTAGEM DISPONÍVEL EM: https://api.mercadopago.com/item_categories
-                "quantity"=> 1, //QUANTIDADE A QUAL ESTA SENDO COMPRADO ESTE ITEM
-                "unit_price"=> round((float)$_REQUEST['amount'],2) //VALOR UNITARIO DO ITEM INDEPENDENTE DO QUANTO ESTÁ SENDO COBRADO
-            )
-        ),
-        "payer"=>  array( //INFORMAÇÕES PESSOAIS DO COMPRADOR
-            "first_name"=> $nome_user[0],
-            "last_name"=> $nome_user [1].$nome_user[2].$nome_user[3].$nome_user[4],
-            "registration_date"=> "2014-06-28T16:53:03.176-04:00",
-            "phone"=>  array(
-                "number"=> $dado_user['telefone']
-            ),
-            "address"=>  array(
-                "zip_code"=> $dado_user['cep'],
-                "street_name"=> $dado_use['logradouro_nome'],
-                "street_number"=> $dado_user['numero']
-            )
-        ),
-    )
-  );
 
+   "transaction_amount"   => doubleval($dado_user['valor']), //valor da compra
+    "token"                => $_POST['token'], //token gerado pelo javascript da index.php
+    "description"          => "Starkclub PF: ".$dado_user['plano'], //descrição da compra
+    "installments"         => 1, //parcelas
+    "payment_method_id"    => $_POST['bandeira'], //forma de pagamento (visa, master, amex...)
+    "payer"                => array ("email" => $dado_user['email']), //e-mail do comprador
+    "statement_descriptor" => $dado_user['nome'], //nome para aparecer na fatura do cartão do cliente
+    "notification_url" 	   => "http://www.starkclub.com.br/club/MP/notification.php",
 
+);
+
+print_r($payment_data);
+	
 $payment = $mp->post("/v1/payments", $payment_data);
 
+print_r($payment);	
+	
 if ($payment['status']['id'] == 205){ echo "<script> alert('Digite o seu número de cartão.'); window.location.assign('https://www.starkclub.com.br/club/checkout-payment-end'); </script>" ; }
 elseif ($payment['status']['id'] == 208){ echo "<script> alert('Escolha um mês.'); window.location.assign('https://www.starkclub.com.br/club/checkout-payment-end'); </script>" ; }
 elseif ($payment['status']['id'] == 209){ echo "<script> alert('Escolha um ano.'); window.location.assign('https://www.starkclub.com.br/club/checkout-payment-end'); </script>" ; }
