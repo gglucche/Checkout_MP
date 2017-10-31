@@ -1,12 +1,9 @@
 ﻿<?php
-//ARQUIVO FORNECIDO GENTILMENTE POR JOÃO ZANINI
-//
-//AUTHOR MP
 ini_set('display_errors',1);
 ini_set('display_startup_errors',1);
 error_reporting(E_ALL);
 require_once "mercadopago.php";
-$mp = new MP("DADO__PESSOAL"); //INSIRA SEU ACCESS_TOKEN DISPONÍVEL EM: https://www.mercadopago.com/mlb/account/credentials
+$mp = new MP("TEST..."); //INSIRA SEU ACCESS_TOKEN DISPONÍVEL EM: https://www.mercadopago.com/mlb/account/credentials
 $payment_preference = array(
     "transaction_amount"=> 200.00,
     "external_reference"=> "PEDIDO-123456",

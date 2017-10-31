@@ -5,7 +5,7 @@ error_reporting(E_ALL);
 require_once "../conexao9.php";
 require_once "mercadopago.php";
 
-$mp = new MP("SECRETO");
+$mp = new MP("APP...");
 
 $json_event = file_get_contents('php://input', true);
 $event = json_decode($json_event);

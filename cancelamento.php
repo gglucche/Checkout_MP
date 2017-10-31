@@ -2,16 +2,16 @@
 <?php
 
 require_once ('mercadopago.php');
-
-//implemente a conexão do BD aqui
+	
+require_once ('../conexao9.php');
 
 session_start();
 
-//Select com a tabela que guarda dados do  
+$select_assoc_info = mysql_query("SELECT * FROM `starkclub_pf` INNER JOIN starkclub_associado ON starkclub_associado.id = starkclub_pf.vinc_id WHERE vinc_id =".$_SESSION['idAssoc']);
 
-if(mysql_num_rows($select_assoc_info)>0){// exite na tabela
+if(mysql_num_rows($select_assoc_info)>0){// exite na tabela starkclub_pf
 
-$mp = new MP('DADO__PESSOAL'); 
+$mp = new MP('APP...'); 
 
 $dado_user = mysql_fetch_array($select_assoc_info);	
 	
@@ -23,7 +23,7 @@ $payment_data = array(
     "payment_method_id"    => $_POST['bandeira'], //forma de pagamento (visa, master, amex...)
     "payer"                => array ("email" => $dado_user['email']), //e-mail do comprador
     "statement_descriptor" => $dado_user['nome'], //nome para aparecer na fatura do cartão do cliente
-    "notification_url" 	   => "http://c74f0aad.ngrok.io/hml/webhooks.php",// LINK WEBHOOKS  
+    "notification_url" 	   => "http://c74f0aad.ngrok.io/hml/webhooks.php",  
 );
 
 $payment = $mp->post("/v1/payments", $payment_data);

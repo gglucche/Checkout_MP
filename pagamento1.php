@@ -1,4 +1,4 @@
-﻿<meta charset="utf-8">
+<meta charset="utf-8">
 <?php
 ini_set('display_errors',1);
 ini_set('display_startup_errors',1);
@@ -23,21 +23,23 @@ $mp = new MP('APP...');
 
 $payment_data = array(
 
+
     "transaction_amount"   => doubleval($dado_user['valor']), //VALOR DA COMPRA
-    "token"                => $_POST['token'], //token gerado pelo javascript da index.php
+    "token"                => $_POST['token'], //TOKEN GERADO PELO JAVASCRIPT INDEX.PHP
     "description"          => "Starkclub PF: ".$dado_user['plano'], //DESCRIÇÃO DA COMPRA
-    "installments"         => intval($_POST['installments']), //parcelas
+    "installments"         => 1, //PARCELAS
     "payment_method_id"    => $_POST['bandeira'], //FORMA DE PAGAMENTO (VISA, MASTERCARD, AMEX)
-    "payer"                => array ("email" => "starkcard@starkcard.com.br"), //e-mail do comprador (o problema está no email)
     "statement_descriptor" => $dado_user['nome'], //NOME NA FATURA DO CARTÃO
-    "notification_url"=> "http://www.starkclub.com.br/club/MP/notification",
+    "statement_descriptor" => "STARKCLUB", // ESTE CAMPO IRÁ NA APARECER NA FATURA DO CARTÃO DO CLIENTE, LIMITADO A 10 CARACTERES.
+    "notification_url"=> "http://www.starkclub.com.br/club/MP/notification", //ENDEREÇO EM SEU SISTEMA POR ONDE DESEJA RECEBER AS NOTIFICAÇÕES DE STATUS: https://www.mercadopago.com.br/developers/pt/solutions/payments/custom-checkout/webhooks/
+    /*"sponsor_id"=>12345678*/ //SOMENTE PARA DEVS/PLATAFORMAS QUE FOREM ADMINISTRAR MÚLTIPLAS LOJAS, INFORMANDO NESTE CAMPO O ID DE SUA CONTA MERCADO PAGO, TORNARÁ FACILMENTE RASTREAVEL AS VENDAS DE TODOS OS SEUS CLIENTES LOJISTAS.
 );
 
-//print_r($payment_data);
+print_r($payment_data);
 	
 $payment = $mp->post("/v1/payments", $payment_data);
 
-//print_r($payment);	
+print_r($payment);	
 	
 if ($payment['status']['id'] == 205){ echo "<script> alert('Digite o seu número de cartão.'); window.location.assign('https://www.starkclub.com.br/club/checkout-payment-end'); </script>" ; }
 elseif ($payment['status']['id'] == 208){ echo "<script> alert('Escolha um mês.'); window.location.assign('https://www.starkclub.com.br/club/checkout-payment-end'); </script>" ; }
@@ -91,8 +93,6 @@ else if ($payment['response']['status'] == "refunded")	{
 		window.location.assign('https://www.starkclub.com.br/club/'); </script>";
 }
 else if($payment['response']['status'] == "approved"){
-	
-	$updt = mysql_query("UPDATE `cartoes` SET `situacao` = 'ativo' WHERE `titular_id` = ".$_SESSION['pfAssoc']);
 	
 	echo "<script>alert('Seu pagamento foi aprovado com sucesso! Bem vindo ao clube Starkclub');
 		window.location.assign('https://www.starkclub.com.br/club/painel_pf'); </script>";
